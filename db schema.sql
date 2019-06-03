@@ -1,3 +1,4 @@
+DROP DATABASE Sklad;
 CREATE DATABASE Sklad;
 use Skald;
 CREATE TABLE uchet (product_code int NOT NULL auto_increment, product varchar(45) NOT NULL,  price int NOT NULL, date_of_delivery date NOT NULL,  date_of_sale date, amount int, PRIMARY KEY(product_code));
