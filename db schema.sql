@@ -3,9 +3,9 @@ CREATE DATABASE Sklad;
 use Skald;
 CREATE TABLE uchet (product_code int NOT NULL auto_increment, product varchar(45) NOT NULL,  price int NOT NULL, date_of_delivery date NOT NULL,  date_of_sale date, amount int, PRIMARY KEY(product_code));
 
-insert into uchet (product , price, date_of_delivery, date_of_sale, amount) values('Áîëò', 30, '2019-05-10', '2019-05-15', 100);
+insert into uchet (product , price, date_of_delivery, date_of_sale, amount) values('Gvozdi', 30, '2019-05-10', '2019-05-15', 100);
 
-insert into uchet (product , price, date_of_delivery, date_of_sale, amount) values('Ãâîçäè', 20, '2019-05-10', '2019-05-15', 250);
+insert into uchet (product , price, date_of_delivery, date_of_sale, amount) values('Bolti', 20, '2019-05-10', '2019-05-15', 250);
 
 CREATE TABLE uchet_type(product_code int NOT NULL auto_increment,product_type VARCHAR(45) NOT NULL,PRIMARY KEY(product_code));
 
