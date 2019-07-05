@@ -3,6 +3,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -13,6 +14,7 @@ public class Forma1 extends JFrame {
     private JButton delButton;
     private JButton addButton;
     private JPanel jok;
+    private JButton showTypesButton;
     private DatabaseConnection databaseConnection = new DatabaseConnection();
 
     {
@@ -67,7 +69,7 @@ public class Forma1 extends JFrame {
             }
         });
         addButton.addActionListener(e -> {
-            JTable table = new JTable(new Vector<>(), setColumnNames("Uchet", false));
+            JTable table = new JTable(new Vector<>(), setColumnNames("UchetAdd", false));
             DefaultTableModel model = (DefaultTableModel) table.getModel();
             model.addRow(new Vector<>());
             JScrollPane jScrollPane = new JScrollPane(table);
@@ -84,35 +86,44 @@ public class Forma1 extends JFrame {
             this.dispose();
             new Forma1();
         });
+        showTypesButton.addActionListener(e ->{
+            JTable table = loadTableData("Types");
+            JScrollPane jScrollPane = new JScrollPane(table);
+            JOptionPane.showMessageDialog(Forma1.this, jScrollPane);
+        });
     }
 
 
     private void add(JTable modified) {
-        ArrayList<String> addRow = new ArrayList<>();
-        int row = 0;
-        int count = modified.getColumnCount();
-        System.out.println(modified.getModel().getValueAt(row, 4));
-        for (int i = 0; i < count; i++) {
-            if (modified.getColumnName(i).toLowerCase().equals(("product")) || (modified.getColumnName(i).toLowerCase().equals("date_of_delivery")) || (modified.getColumnName(i).toLowerCase().equals("date_of_sale")))
-                addRow.add("\'" + modified.getModel().getValueAt(row, i).toString().trim() + "\'");
-            else
-                addRow.add(modified.getModel().getValueAt(row, i).toString().trim());
+        try {
+            ArrayList<String> addRow = new ArrayList<>();
+            int row = 0;
+            int count = modified.getColumnCount();
+            for (int i = 0; i < count; i++) {
+                if (modified.getColumnName(i).toLowerCase().equals(("product")) || (modified.getColumnName(i).toLowerCase().equals("date_of_delivery")) || (modified.getColumnName(i).toLowerCase().equals("date_of_sale")) ||(modified.getColumnName(i).toLowerCase().equals("Product_type")))
+                    addRow.add("\'" + modified.getModel().getValueAt(row, i).toString().trim() + "\'");
+                else {
+                    addRow.add(modified.getModel().getValueAt(row, i).toString().trim());
+                }
+            }
+            String addArgument = "";
+            for (int i = 0; i < addRow.size(); i++) {
+                String s = addRow.get(i);
+                if (i != addRow.size() - 1)
+                    addArgument = addArgument.concat(s).concat(", ");
+                else
+                    addArgument = addArgument.concat(s);
+            }
+            databaseConnection.add(addArgument);
+            this.dispose();
+            new Forma1();
         }
-        String addArgument = "";
-        for(int i = 0; i < addRow.size(); i++) {
-            String s = addRow.get(i);
-            if(i != addRow.size() - 1)
-                addArgument = addArgument.concat(s).concat(", ");
-            else
-                addArgument = addArgument.concat(s);
+        catch (NullPointerException e) {
+            e.printStackTrace();
         }
-        databaseConnection.add(addArgument);
-        this.dispose();
-        new Forma1();
     }
 
     private JTable loadTableData(String tableName) {
-        DefaultTableModel defaultTableModel;
         if (tableName.equals("Uchet")) {
             Vector<String> columnNames = setColumnNames(tableName, true);
             Vector<ArrayList<String>> rows = new Vector<>();
@@ -123,20 +134,31 @@ public class Forma1 extends JFrame {
             rows.addElement(databaseConnection.getDatesOfSale());
             rows.addElement(databaseConnection.getIntegerData("amount"));
             JTable tab = new JTable(new Vector<>(), columnNames);
-            defaultTableModel = (DefaultTableModel) tab.getModel();
-            for (int i = 0; i < rows.get(0).size(); i++) {
-                Vector<String> row = new Vector<>();
-                for (int j = 0; j < rows.size(); j++) {
-                    row.add(rows.get(j).get(i));
-                }
-                defaultTableModel.addRow(row);
-            }
-            tab.setFillsViewportHeight(true);
-            return tab;
-        } else
-            return null;
+            return createTable(tab, columnNames, rows);
+        } else {
+            Vector<String> columnNames = setColumnNames(tableName, true);
+            Vector<ArrayList<String>> rows = new Vector<>();
+            rows.addElement(databaseConnection.getUchetTypesCode("product_code"));
+            rows.addElement(databaseConnection.getUchetTypesType("product_type"));
+            JTable tab = new JTable(new Vector<>(), columnNames);
+            return createTable(tab, columnNames, rows);
+        }
     }
 
+    private JTable createTable(JTable tab, Vector<String> columnNames, Vector<ArrayList<String>> rows) {
+        DefaultTableModel defaultTableModel;
+        tab = new JTable(new Vector<>(), columnNames);
+        defaultTableModel = (DefaultTableModel) tab.getModel();
+        for (int i = 0; i < rows.get(0).size(); i++) {
+            Vector<String> row = new Vector<>();
+            for (int j = 0; j < rows.size(); j++) {
+                row.add(rows.get(j).get(i));
+            }
+            defaultTableModel.addRow(row);
+        }
+        tab.setFillsViewportHeight(true);
+        return tab;
+    }
 
     private Vector<String> setColumnNames(String table, boolean addIdCol) {
         if (table.equals("Uchet")) {
@@ -150,7 +172,17 @@ public class Forma1 extends JFrame {
             columnNames.add("Amount");
             return columnNames;
         }
-        return null;
+        else if(table.equals("UchetAdd")) {
+            Vector<String> columnNames = setColumnNames("Uchet", false);
+            columnNames.add("Product_type");
+            return columnNames;
+        }
+        else {
+            Vector<String> columnNames = new Vector<>();
+            columnNames.add("Product_code");
+            columnNames.add("Product_type");
+            return columnNames;
+        }
     }
 
     public static void main(String[] args) {

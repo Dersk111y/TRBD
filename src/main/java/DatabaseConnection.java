@@ -1,5 +1,7 @@
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DatabaseConnection {
 
@@ -14,8 +16,7 @@ public class DatabaseConnection {
 
 
     private int updateQuery(String sql) throws SQLException, ClassNotFoundException {
-        int result = getStatement().executeUpdate(sql);
-        return result;
+        return getStatement().executeUpdate(sql);
     }
 
 
@@ -88,6 +89,38 @@ public class DatabaseConnection {
     }
 
 
+    ArrayList<String> getUchetTypesCode(String requestedColumn) {
+        try {
+            ResultSet resultSet = getResultSet("SELECT * FROM uchet_type;");
+            ArrayList<String> list = new ArrayList<>();
+            while (resultSet.next()) {
+                list.add(Integer.toString(resultSet.getInt(requestedColumn)));
+            }
+            return list;
+        }
+        catch (ClassNotFoundException | SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+
+    ArrayList<String> getUchetTypesType(String requestedColumn) {
+        try {
+            ResultSet resultSet = getResultSet("SELECT * FROM uchet_type;");
+            ArrayList<String> list = new ArrayList<>();
+            while (resultSet.next()) {
+                list.add(resultSet.getString(requestedColumn));
+            }
+            return list;
+        }
+        catch (ClassNotFoundException | SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+
     void edit(String id, String columnName, String value) {
         try {
             if (columnName.equals("product")||(columnName.equals("date_of_delivery")) || (columnName.equals("date_of_sale")))
@@ -112,8 +145,22 @@ public class DatabaseConnection {
 
 
     void add(String add) {
+        List<String> addList = Arrays.asList(add.split(",[ ]*"));
+        String separatedType = "";
+        String types = addList.get(addList.size() - 1);
+        for(int i = 0; i < addList.size() - 1; i++) {
+            separatedType = separatedType.concat(addList.get(i) + ", ");
+        }
+        separatedType = separatedType.substring(0, separatedType.length() - 2);
         try {
-            updateQuery("INSERT INTO uchet(product , price, date_of_delivery, date_of_sale, amount) VALUES( " + add + ");");
+            updateQuery("INSERT INTO uchet(product , price, date_of_delivery, date_of_sale, amount) VALUES( " + separatedType + ");");
+            ResultSet resultSet = getResultSet("SELECT MAX(product_code) FROM uchet;");
+            String id = "";
+            while(resultSet.next()) {
+                id = Integer.toString(resultSet.getInt("MAX(product_code)"));
+            }
+            System.out.println("INSERT INTO uchet_type(product_code, product_type) VALUES( " + id + ", " + types + ");");
+            updateQuery("INSERT INTO uchet_type(product_code, product_type) VALUES(" + id + ", '" + types + "');");
         }
         catch (ClassNotFoundException|SQLException e) {
             System.out.println(e.getMessage());
